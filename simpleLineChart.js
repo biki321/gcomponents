@@ -47,45 +47,47 @@ class SimpleLineChart extends HTMLElement {
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // Get the data
-    d3.csv("./data.csv", function (error, data) {
-      if (error) throw error;
+    d3.csv("./data.csv")
+      .then(function (data) {
+        // format the data
+        data.forEach(function (d) {
+          d.date = parseTime(d.date);
+          d.close = +d.close;
+        });
 
-      // format the data
-      data.forEach(function (d) {
-        d.date = parseTime(d.date);
-        d.close = +d.close;
+        // Scale the range of the data
+        x.domain(
+          d3.extent(data, function (d) {
+            return d.date;
+          })
+        );
+        y.domain([
+          0,
+          d3.max(data, function (d) {
+            return d.close;
+          }),
+        ]);
+
+        // Add the valueline path.
+        svg
+          .append("path")
+          .data([data])
+          .attr("class", "line")
+          .attr("d", valueline);
+
+        // Add the X Axis
+        svg
+          .append("g")
+          .attr("transform", "translate(0," + height + ")")
+          .call(d3.axisBottom(x));
+
+        // Add the Y Axis
+        svg.append("g").call(d3.axisLeft(y));
+      })
+      .catch(function (error) {
+        console.log("hii");
+        throw error;
       });
-
-      // Scale the range of the data
-      x.domain(
-        d3.extent(data, function (d) {
-          return d.date;
-        })
-      );
-      y.domain([
-        0,
-        d3.max(data, function (d) {
-          return d.close;
-        }),
-      ]);
-
-      // Add the valueline path.
-      svg
-        .append("path")
-        .data([data])
-        .attr("class", "line")
-        .attr("d", valueline);
-
-      // Add the X Axis
-      svg
-        .append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
-
-      // Add the Y Axis
-      svg.append("g").call(d3.axisLeft(y));
-    });
   }
 }
 
